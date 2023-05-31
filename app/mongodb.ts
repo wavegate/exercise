@@ -25,5 +25,3 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export default clientPromise;
-
-// mongodb+srv://admin:admin@cluster0.kfa1ijw.mongodb.net/?retryWrites=true&w=majority

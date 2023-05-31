@@ -1,55 +1,61 @@
 "use client";
+import useSWR from "swr";
+import { useState } from "react";
+import Post from "./components/post";
 
-import { useEffect, useState } from "react";
-import checkEnvironment from "./lib/environment.js";
+const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
-// const fetchNote = async () => {
-//   const response = await fetch(`${checkEnvironment()}/api`, {
-//     cache: "no-store",
-//   });
-//   return await response.json();
-// };
+export default function Home() {
+  const { data, mutate, error } = useSWR(`/api`, fetcher);
 
-export default async function Home() {
-  const [posts, setPosts] = useState<any>();
-  console.log(posts);
-  useEffect(() => {
-    const fetchNote = async () => {
-      const response = await fetch(`${checkEnvironment()}/api`, {
-        cache: "no-store",
-      });
-      return await response.json();
-    };
-
-    fetchNote().then((res) => {
-      console.log(res);
-      setPosts(res);
-    });
-  }, []);
   const [title, setTitle] = useState<string>("");
-  const submitForm = async (e) => {
+
+  const submitForm = (e) => {
     e.preventDefault();
-    let res = await fetch("http://localhost:3000/api", {
+    fetch("/api", {
       method: "POST",
       body: JSON.stringify({
         title: title,
       }),
     });
-    res = await res.json();
+    mutate([...data, { id: Math.random(), title: title }], false);
   };
 
   const handleChange = (e) => {
     setTitle(e.target.value);
   };
 
+  const deleteAll = () => {
+    fetch("/api", {
+      method: "DELETE",
+    });
+    mutate([]);
+  };
+
+  const deletePost = (id) => {
+    fetch(`/api/${id}`, {
+      method: "DELETE",
+    });
+  };
+
   return (
     <main>
-      {posts?.map((post) => {
-        return <div key={post.id}>{post.title}</div>;
+      {data?.map((post: any) => {
+        return <Post post={post} key={post._id} />;
       })}
       <form>
-        <input type="text" name="title" onChange={handleChange}></input>
-        <input type="submit" onSubmit={submitForm}></input>
+        <input
+          type="text"
+          name="title"
+          onChange={handleChange}
+          className={`border border-solid border-black`}
+        ></input>
+        <button type="submit" onClick={submitForm}>
+          Submit
+        </button>
+        <button type="submit" onClick={deleteAll}>
+          Delete all
+        </button>
       </form>
     </main>
   );
